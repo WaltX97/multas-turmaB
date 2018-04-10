@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
@@ -60,22 +61,52 @@ namespace Multas_tB.Controllers
         [HttpPost]
         //anotador para protecao de roubo de identidade
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Nome,Esquadra,Fotografia")] Agentes agentes)
+        public ActionResult Create([Bind(Include = "Nome,Esquadra")
+            ] Agentes agente, HttpPostedFileBase uploadFotografia)
         {
             // escrever os dados de um novo agente na BD
+            //especificar o nome do agente
+            int idNovoAgente = db.Agentes.Max(a => a.ID) + 1;
+            //guardar o id do novo agente
+            agente.ID = idNovoAgente;
+            //especificar (escolher) o nome do ficheiro
+            string nomeImagem = "Agente_"+idNovoAgente+".jpg";
+            //var auxiliar
+            string path="";
+            //validar se a imagem foi fornecida
+            if(uploadFotografia != null)
+            {
+                //o ficheiro foi fornecido
+                //validar se o que foi fornecido e uma imagem---> fazer em casa
+                //formatar o tamanho da imagem 
+                //criar o caminho completo até ao sitio onde o ficheiro sera guardado
+                path = Path.Combine(Server.MapPath("~/imagens/"), nomeImagem);
+                //guardar o nome do ficheiro na BD
+                agente.Fotografia = nomeImagem;
+            }
+           else
+            {
+                //não foi fornecido qualquer ficheiro
+                ModelState.AddModelError("", "Não foi fornecida imagem");
+                //devolver o controlo a view
+                return View(agente);
+            }
+            //escrever o ficheiro com a fotografia no disco rigido na pasta 'imagens'
+            //guardar o nome escolhido na BD
 
-            //ModelState.IsValid -> confrota ks dados fornecidos da view com as exigencias do modelo
+
+            //ModelState.IsValid -> confrota os dados fornecidos da view com as exigencias do modelo
             if (ModelState.IsValid)
             {
                 //adiciona o novo Agente a bd
-                db.Agentes.Add(agentes);
+                db.Agentes.Add(agente);
                 //faz commit as alteraçoes
                 db.SaveChanges();
                 //se tudo correr bem, redireciona para a pagina de Index
                 return RedirectToAction("Index");
             }
             //se houver um erro representa os dados do Agente na view
-            return View(agentes);
+            return View(agente);
         }
 
         // GET: Agentes/Edit/5

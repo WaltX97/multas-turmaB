@@ -25,7 +25,7 @@ namespace Multas_tB.Models
 
         public string NumCartaConducao { get; set; }
 
-        public string LocaEmissao { get; set; }
+        public string LocalEmissao { get; set; }
 
         public DateTime DataValidadeCarta { get; set; }
 
